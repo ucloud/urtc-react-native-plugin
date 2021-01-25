@@ -15,7 +15,10 @@
     "type": "git",
     "url": "https://github.com/ucloud/urtc-react-native-plugin"
   },
-  "authors": "ciel.wu@ucloud.cn",
+  "author": {
+      "name": "ciel.wu",
+      "email": "ciel.wu@ucloud.cn"
+  },
   "license": "MIT",
   "homepage": "https://www.ucloud.cn/",
   "peerDependencies": {
