@@ -20,5 +20,8 @@
   "homepage": "https://www.ucloud.cn/",
   "peerDependencies": {
     "react-native": "^0.41.2"
+  },
+  "dependencies": {
+    "react-native-ucloud-rtc": "0.2.0"
   }
 }
