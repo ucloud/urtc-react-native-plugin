@@ -1,4 +1,4 @@
-# react-native-ucloud-rtc
+# react-native-urtc
 
 ## 安装使用
 
