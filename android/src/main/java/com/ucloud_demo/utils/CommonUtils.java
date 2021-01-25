@@ -28,11 +28,9 @@ public class CommonUtils {
     public static final String SDK_IS_LOOP = "SDK_IS_LOOP";
     public static final String SDK_MIX_FILE_PATH = "SDK_MIX_FILE_PATH";
 
-    public static final String APPID_KEY = "906e5f97adc85fa1b81b96dac1792291";
-    public static final String APP_ID = "URtc-h4r1txxy";
-//    9129304dbf8c5c4bf68d70824462409f
+    public static final String APPID_KEY = "";
+    public static final String APP_ID = "";
 
-    public static final String SEC_KEY = "906e5f97adc85fa1b81b96dac1792291";
     @IntDef({AUTO_MODE, MANUAL_MODE})
     public @interface  PubScribeMode {}
 

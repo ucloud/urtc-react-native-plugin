@@ -9,22 +9,22 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.IntDef;
+
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.ucloud_demo.service.UCloudRtcForeGroundService;
 import com.ucloud_demo.utils.CommonUtils;
 import com.ucloud_demo.utils.PermissionUtils;
 import com.ucloud_demo.utils.SuperLog;
@@ -34,15 +34,17 @@ import com.ucloudrtclib.sdkengine.UCloudRtcSdkEngine;
 import com.ucloudrtclib.sdkengine.UCloudRtcSdkEnv;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkAudioDevice;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkAuthInfo;
-import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkErrorCode;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkLogLevel;
+import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkMediaServiceStatus;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkMediaType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkMode;
+import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkNetWorkQuality;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkRoomType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkScaleType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkStats;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkStreamInfo;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkStreamRole;
+import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkStreamType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkSurfaceVideoView;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkTrackType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkVideoProfile;
@@ -54,7 +56,7 @@ import static android.app.Activity.RESULT_OK;
 public class RNMyLibraryModule extends ReactContextBaseJavaModule {
     private ReactApplicationContext mContext;
     private final String TAG = this.getClass().getSimpleName();
-    private boolean isNeesScreenCapture = false;
+    private boolean isNeedScreenCapture = false;
     private String roomId;
     private String userId;
     private String mToken;
@@ -96,10 +98,8 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
      */
     private void initUCloud(){
         UCloudRtcSdkEnv.initEnv(mContext.getApplicationContext());
-
         UCloudRtcSdkEnv.setLogLevel(UCloudRtcSdkLogLevel.UCLOUD_RTC_SDK_LogLevelInfo);
-        UCloudRtcSdkEnv.setSdkMode(UCloudRtcSdkMode.UCLOUD_RTC_SDK_MODE_TRIVAL);
-        UCloudRtcSdkEnv.setTokenSeckey(CommonUtils.SEC_KEY);
+
         WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(outMetrics);
@@ -109,63 +109,73 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
 
 
     @ReactMethod
-    public void initWithAppid(String appid, String appkey, boolean isAuto, Promise promise){
-        this.mAppId = appid;
+    public void initWithAppid(String appId, String appKey, int sdkMode,boolean isAutoPub,boolean isAutoSub, Promise promise){
+        SuperLog.d(TAG,"initWithAppid "+ appId + " appKey: "+ appKey + " sdkMode: "+ sdkMode +
+                " isAutoPub:" + isAutoPub + " isAutoSub: "+ isAutoSub);
+        UCloudRtcSdkEnv.setTokenSeckey(appKey);
+        if(sdkMode == UCloudRtcSdkMode.UCLOUD_RTC_SDK_MODE_TRIVAL.ordinal()){
+            UCloudRtcSdkEnv.setSdkMode(UCloudRtcSdkMode.UCLOUD_RTC_SDK_MODE_TRIVAL);
+        }else if(sdkMode == UCloudRtcSdkMode.UCLOUD_RTC_SDK_MODE_NORMAL.ordinal()){
+            UCloudRtcSdkEnv.setSdkMode(UCloudRtcSdkMode.UCLOUD_RTC_SDK_MODE_NORMAL);
+        }
+        this.mAppId = appId;
+        String initResult = "";
         sdkEngine.setAudioOnlyMode(false) ; // 设置纯音频模式
         sdkEngine.configLocalCameraPublish(true) ; // 设置摄像头是否发布
         sdkEngine.configLocalAudioPublish(true) ; // 设置音频是否发布，用于让sdk判断自动发布的媒体类型
         sdkEngine.configLocalScreenPublish(true) ; // 设置桌面是否发布，作用同上
         sdkEngine.setStreamRole(UCloudRtcSdkStreamRole.UCLOUD_RTC_SDK_STREAM_ROLE_BOTH);// 流权限
-        sdkEngine.setAutoPublish(false) ; // 是否自动发布
-        sdkEngine.setAutoSubscribe(false) ;// 是否自动订阅
+        sdkEngine.setAutoPublish(isAutoPub) ; // 是否自动发布
+        sdkEngine.setAutoSubscribe(isAutoSub) ;// 是否自动订阅
         sdkEngine.setClassType(UCloudRtcSdkRoomType.UCLOUD_RTC_SDK_ROOM_SMALL);
         UCloudRtcSdkEnv.setWriteToLogCat(true);
         // 摄像头输出等级
         sdkEngine.setVideoProfile(UCloudRtcSdkVideoProfile.matchValue(0)) ;
-        SuperLog.e("RNMyLibraryModule","this is initWithAppid");
-        Log.d(TAG, "initWithAppid no class: ");
-        promise.resolve("resolve");
-    }
-    @ReactMethod
-    public void initWithAppid(String appId,String appKey,boolean isDebug,int classType,int streamProfile,Promise promise){
-        Log.d(TAG, "initWithAppid with class type: " + classType);
-        this.mAppId = appId;
-        sdkEngine.setAudioOnlyMode(false) ; // 设置纯音频模式
-        UCloudRtcSdkEnv.setWriteToLogCat(isDebug);
-        sdkEngine.configLocalCameraPublish(true) ; // 设置摄像头是否发布
-        sdkEngine.configLocalAudioPublish(true) ; // 设置音频是否发布，用于让sdk判断自动发布的媒体类型
-        sdkEngine.configLocalScreenPublish(true) ; // 设置桌面是否发布，作用同上
-        // 流权限
-        sdkEngine.setStreamRole(UCloudRtcSdkStreamRole.valueOf(streamProfile));
-        sdkEngine.setAutoPublish(false) ; // 是否自动发布
-        sdkEngine.setAutoSubscribe(false) ;// 是否自动订阅
-        //小班级最多容纳15名学生，如果同时设置UCLOUD_RTC_SDK_STREAM_ROLE_BOTH权限，实际上最多只有10名学生可以同时推流
-        //大班级容纳人数没有上限，但是只能老师使用如果同时设置UCLOUD_RTC_SDK_STREAM_ROLE_BOTH权限权限，学生只能使用SUB(订阅)权限，4月底支持
-        sdkEngine.setClassType(UCloudRtcSdkRoomType.valueOf(classType));
-        // 摄像头输出等级
-        sdkEngine.setVideoProfile(UCloudRtcSdkVideoProfile.matchValue(0)) ;
-        promise.resolve("resolve");
+        initResult += "init finish";
+        promise.resolve(initResult);
     }
 
-    private Promise roomPromise;
+    private Promise mJoinPromise;
     @ReactMethod
     public void joinRoomWithRoomid(String roomId,String userId,String token,Promise promise){
         this.roomId = roomId;
         this.userId = userId;
         this.mToken = token;
-        this.roomPromise = promise;
-        startJoinChannel();
-        if (isNeesScreenCapture && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        this.mJoinPromise = promise;
+        if (isNeedScreenCapture && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             //开始申请采集桌面显示的所有内容，在onActivityResult中得到回调
             Activity activity = mContext.getCurrentActivity();
-            SuperLog.e(TAG,"NAME = " + activity.getLocalClassName());
+            SuperLog.d(TAG,"request screen capture join room activity = " + activity.getLocalClassName());
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    if(sdkEngine == null){
+                        SuperLog.d(TAG,"recreate engine ");
+                        sdkEngine = UCloudRtcSdkEngine.createEngine(eventListener);
+                    }
                     UCloudRtcSdkEngine.requestScreenCapture(mContext.getCurrentActivity());
                 }
             });
+        }else{
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(sdkEngine == null){
+                        SuperLog.d(TAG,"recreate engine ");
+                        sdkEngine = UCloudRtcSdkEngine.createEngine(eventListener);
+                    }
+                    SuperLog.d(TAG,"join room without screen capture");
+                    startJoinChannel();
+                }
+            });
+
         }
+    }
+
+    @ReactMethod
+    public void startForeGroundService(){
+        Intent service = new Intent(mContext, UCloudRtcForeGroundService.class);
+        mContext.startService(service);
     }
 
     /**
@@ -194,7 +204,6 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
                     UCloudRtcSdkEngine.onScreenCaptureResult(data);
                 }
             });
-
             startJoinChannel();
         }
     };
@@ -217,7 +226,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void subscribeRemoteStream(){
         //订阅远程流
-        SuperLog.e("RNMyLibraryModule","this is subscribeRemoteStream");
+        SuperLog.d(TAG,"this is subscribeRemoteStream");
         UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
         info.setUid(userId);
         info.setHasAudio(true);
@@ -230,7 +239,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void unSubscribeRemoteStream(){
         //取消订阅远程流
-        SuperLog.e("RNMyLibraryModule","this is unSubscribeRemoteStream");
+        SuperLog.d(TAG,"this is unSubscribeRemoteStream");
         UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
         info.setUid(userId);
         info.setMediaType(UCloudRtcSdkMediaType.UCLOUD_RTC_SDK_MEDIA_TYPE_VIDEO);
@@ -243,7 +252,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
             ToastUtils.shortShow(mContext,"相机或存储权限未开启");
         }
         //发布本地流
-        sdkEngine.publish(UCloudRtcSdkMediaType.UCLOUD_RTC_SDK_MEDIA_TYPE_VIDEO, true,true);
+        sdkEngine.publish(UCloudRtcSdkMediaType.UCLOUD_RTC_SDK_MEDIA_TYPE_VIDEO, isOpenCamera,true);
     }
     @ReactMethod
     public void unPublishLocalStream(){
@@ -258,17 +267,17 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
     public void startRecordLocalStreamWithType(int type){
         //录制本地视频
         //类型  1 音频 2 视频 3 音频+视频
-        SuperLog.e("RNMyLibraryModule","this is startRecordLocalStreamWithType");
+        SuperLog.d(TAG,"this is startRecordLocalStreamWithType");
     }
     @ReactMethod
     public void stopRecordLocalStream(){
         //停止录制
-        SuperLog.e("RNMyLibraryModule","this is stopRecordLocalStream");
+        SuperLog.d(TAG,"this is stopRecordLocalStream");
     }
     @ReactMethod
     public void leaveRoom(){
         //离开房间
-        SuperLog.e("RNMyLibraryModule","this is leaveRoom");
+        SuperLog.d(TAG,"this is leaveRoom");
         sdkEngine.leaveChannel();
 //        mContext.getCurrentActivity().finish();
     }
@@ -289,8 +298,13 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         startJoinChannel();
     }
 
-
-
+    private void sendEvent(String eventName, WritableMap params) {
+        if(mContext != null){
+            SuperLog.d(TAG,"send event = " + eventName + "params "+ params);
+            mContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(eventName, params);
+        }
+    }
 
     UCloudRtcSdkEventListener eventListener = new UCloudRtcSdkEventListener() {
 
@@ -301,20 +315,24 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
 
         @Override
         public void onJoinRoomResult(int i, String s, String s1) {
-            Log.e(TAG,"JOIN = " + i + ", msg = " + s + ", msg1 = " + s1);
-            if(i == 0 && roomPromise != null){
-                roomPromise.resolve("resolve");
+            SuperLog.d(TAG,"JOIN = " + i + ", msg = " + s + ", msg1 = " + s1);
+            if(i == 0 && mJoinPromise != null){
+                mJoinPromise.resolve("onJoinRoomResult "+ i + " msg: "+ s);
             }
         }
 
         @Override
         public void onLeaveRoomResult(int i, String s, String s1) {
-            Handler handler = new Handler(Looper.getMainLooper());
-
-            handler.post(new Runnable() {
+            SuperLog.d(TAG,"LEAVE = " + i + ", msg = " + s + ", msg1 = " + s1);
+            WritableMap params = Arguments.createMap();
+            params.putInt("code", i);
+            params.putString("msg", s);
+            sendEvent("event_memberDidLeaveRoom",params);
+            mHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     UCloudRtcSdkEngine.destory();
+                    sdkEngine = null;
                 }
             });
 
@@ -347,7 +365,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
                     info.setHasData(true);
                     //两块不同的View分别渲染本地流和媒体流
                     //防止本地和媒体同时展示在一个View上面
-                    sdkEngine.startPreview(info.getMediaType(),localrenderview,UCloudRtcSdkScaleType.UCLOUD_RTC_SDK_SCALE_ASPECT_FIT,null);
+                    sdkEngine.renderLocalView(info,localrenderview,UCloudRtcSdkScaleType.UCLOUD_RTC_SDK_SCALE_ASPECT_FIT,null);
                 }
             });
         }
@@ -355,7 +373,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         @Override
         public void onLocalUnPublish(int i, String s, UCloudRtcSdkStreamInfo uCloudRtcSdkStreamInfo) {
             //取消发布媒体流
-            Log.e(TAG,"onLocalUnPublish");
+            SuperLog.d(TAG,"onLocalUnPublish");
         }
 
         @Override
@@ -394,8 +412,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
                 public void run() {
                     URTCVideoViewInfo vinfo = new URTCVideoViewInfo(null);
                     UCloudRtcSdkSurfaceVideoView videoView = new UCloudRtcSdkSurfaceVideoView(mContext.getApplicationContext());;
-
-                    Log.d(TAG, " subscribe info: " + info.getUId() + " hasvideo " + info.isHasVideo());
+                    SuperLog.d(TAG, " subscribe info: " + info.getUId() + " hasvideo " + info.isHasVideo());
                     if (info.isHasVideo()) {
                         videoView.init(false);
                         videoView.setScalingType(UCloudRtcSdkScaleType.UCLOUD_RTC_SDK_SCALE_ASPECT_FIT);
@@ -410,7 +427,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
                     String mkey = info.getUId() + info.getMediaType().toString();
                     vinfo.setKey(mkey);
                     //默认输出，和外部输出代码二选一
-                    Log.e(TAG,"s = " + s  + ",i = " + i + ",info = " + info.toString());
+                    SuperLog.d(TAG,"s = " + s  + ",i = " + i + ",info = " + info.toString());
 //                    info.setHasVideo(true);
 //                    info.setHasAudio(true);
 //                    info.setHasData(true);
@@ -491,12 +508,17 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         }
 
         @Override
-        public void onMixStart(int i, String s) {
+        public void onQueryMix(int i, String s, int i1, String s1, String s2) {
 
         }
 
         @Override
-        public void onMixStop(int i, String s) {
+        public void onRecordStatusNotify(UCloudRtcSdkMediaServiceStatus uCloudRtcSdkMediaServiceStatus, int i, String s, String s1, String s2, String s3, String s4) {
+
+        }
+
+        @Override
+        public void onRelayStatusNotify(UCloudRtcSdkMediaServiceStatus uCloudRtcSdkMediaServiceStatus, int i, String s, String s1, String s2, String s3, String[] strings) {
 
         }
 
@@ -511,7 +533,17 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         }
 
         @Override
+        public void onLogOffUsers(int i, String s) {
+
+        }
+
+        @Override
         public void onMsgNotify(int i, String s) {
+
+        }
+
+        @Override
+        public void onLogOffNotify(int i, String s) {
 
         }
 
@@ -527,6 +559,16 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
 
         @Override
         public void onPeerLostConnection(int i, UCloudRtcSdkStreamInfo uCloudRtcSdkStreamInfo) {
+
+        }
+
+        @Override
+        public void onNetWorkQuality(String s, UCloudRtcSdkStreamType uCloudRtcSdkStreamType, UCloudRtcSdkMediaType uCloudRtcSdkMediaType, UCloudRtcSdkNetWorkQuality uCloudRtcSdkNetWorkQuality) {
+
+        }
+
+        @Override
+        public void onAudioFileFinish() {
 
         }
     };
