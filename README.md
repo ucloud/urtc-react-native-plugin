@@ -2,22 +2,36 @@
 
 ## 安装使用
 
-Install with npm:
+install with yarn:
 
- `npm install --save react-native-ucloud-rtc`
-
-Or, install with yarn:
-
- `yarn add react-native-ucloud-rtc`
+```
+yarn add react-native-urtc
+```
 
 Either way, then link with:
 
- `react-native link react-native-ucloud-rtc`
+```
+react-native link react-native-urtc
+```
+
+run in android 
+
+```
+react-native run-android
+```
+
+upgrade
+
+```
+yarn upgrade
+```
+
+
 
  ## React-Native 调用
 
  ```
- import UCloudRtc from 'react-native-ucloud-rtc';
+ import UCloudRtc from 'react-native-urtc';
 
 // 显示播放器
 const RNMyVideoView = requireNativeComponent('RNMyVideoView');
@@ -34,16 +48,16 @@ UCloudRtc.initWithAppid(appid, appKey);
       <RNMyVideoView style={styles.localVideoStyle} />
     </View>   
 ...
-```
+ ```
 ## API
 #### 初始化 initWithAppid
 ```
 appid: appid,
 appKey: appKey,
-isDebug: 是否开启日志, true-开启、false-关闭
-roomType: 0小班课、视频会议、默认值  1大班课    
-streamProfile: 权限  0上传权限  1下载权限  2所有权限 默认值
-UCloudRtc.initWithAppid(appid, appKey, isDebug, roomType, streamProfile).then(res => {
+sdkMode: 0正式模式  1测试模式    
+autoPub: true 开启自动发布 false 关闭
+autoSub：true 开启自动订阅 false 关闭
+UCloudRtc.initWithAppid(appid, appKey, sdkMode, autoPub,autoSub).then(res => {
     console.log('收到回调', res);
   }).catch(err => {
     console.log('捕获异常', err);
@@ -85,7 +99,7 @@ UCloudRtc.leaveRoom();
 #### 停止录制
  ```
  UCloudRtc.stopRecordLocalStream()
-```
+ ```
 
 ### 事件监听
 ```
