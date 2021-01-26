@@ -1,12 +1,6 @@
-package com.ucloud_demo;
+package com.ucloud_plugin;
 
 import android.content.Context;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.SparseArray;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -15,18 +9,18 @@ import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkScaleType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkSurfaceVideoView;
 
 
-class RNMyVideoView extends LinearLayout {
+public class RNLocalView extends LinearLayout {
     private Context mContext;
     private  UCloudRtcSdkSurfaceVideoView mLocalView;
 
-    private static RNMyVideoView mInstance;
+    private static RNLocalView mInstance;
 
 
-    public static RNMyVideoView getInstance(Context context) {
+    public static RNLocalView getInstance(Context context) {
         if (mInstance == null) {
-            synchronized (RNMyVideoView.class) {
+            synchronized (RNLocalView.class) {
                 if (mInstance == null) {
-                    mInstance = new RNMyVideoView(context);
+                    mInstance = new RNLocalView(context);
                 }
             }
         }
@@ -35,7 +29,7 @@ class RNMyVideoView extends LinearLayout {
 
 
 
-    public RNMyVideoView(Context context){
+    public RNLocalView(Context context){
         super(context);
         this.mContext = context;
         mLocalView = new UCloudRtcSdkSurfaceVideoView(mContext.getApplicationContext());

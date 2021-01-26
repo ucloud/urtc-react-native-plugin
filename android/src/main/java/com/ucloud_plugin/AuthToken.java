@@ -1,4 +1,4 @@
-package com.ucloud_demo;
+package com.ucloud_plugin;
 
 import android.os.Build;
 

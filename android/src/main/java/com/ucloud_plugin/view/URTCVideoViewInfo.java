@@ -1,4 +1,4 @@
-package com.ucloud_demo.view;
+package com.ucloud_plugin.view;
 
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkMediaType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkSurfaceVideoView;

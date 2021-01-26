@@ -1,4 +1,4 @@
-package com.ucloud_demo.service;
+package com.ucloud_plugin.service;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -11,7 +11,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.ucloud_demo.R;
+import com.ucloud_plugin.R;
 
 /**
  * @author ciel

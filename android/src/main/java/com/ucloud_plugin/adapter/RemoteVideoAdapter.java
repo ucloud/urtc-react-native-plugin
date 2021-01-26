@@ -1,4 +1,4 @@
-package com.ucloud_demo.adapter;
+package com.ucloud_plugin.adapter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -13,9 +13,9 @@ import android.widget.ImageView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.ucloud_demo.R;
-import com.ucloud_demo.utils.CommonUtils;
-import com.ucloud_demo.view.URTCVideoViewInfo;
+import com.ucloud_plugin.R;
+import com.ucloud_plugin.utils.CommonUtils;
+import com.ucloud_plugin.view.URTCVideoViewInfo;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkStreamInfo;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkSurfaceVideoView;
 

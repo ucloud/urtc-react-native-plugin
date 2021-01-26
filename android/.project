@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>react-native-ucloud-rtc</name>
-	<comment>Project react-native-ucloud-rtc created by Buildship.</comment>
+	<name>react-native-urtc</name>
+	<comment>Project react-native-urtc created by Buildship.</comment>
 	<projects>
 	</projects>
 	<buildSpec>

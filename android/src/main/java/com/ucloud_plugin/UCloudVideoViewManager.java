@@ -1,16 +1,13 @@
-package com.ucloud_demo;
+package com.ucloud_plugin;
 
 import android.graphics.Color;
 import android.view.View;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
-import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkSurfaceVideoView;
 
 public class UCloudVideoViewManager extends SimpleViewManager<RNMyVideoView> {
     @NonNull

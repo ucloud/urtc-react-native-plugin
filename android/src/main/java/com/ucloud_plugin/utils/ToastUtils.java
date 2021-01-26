@@ -1,4 +1,4 @@
-package com.ucloud_demo.utils;
+package com.ucloud_plugin.utils;
 
 import android.content.Context;
 import android.widget.Toast;
