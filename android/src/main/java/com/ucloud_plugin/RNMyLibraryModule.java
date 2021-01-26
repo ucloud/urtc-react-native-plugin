@@ -261,8 +261,8 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
     }
     @ReactMethod
     public void publishLocalStreamWithCameraEnable(boolean isOpenCamera){
-        if(!PermissionUtils.hasPermissions(mContext,Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-            ToastUtils.shortShow(mContext,"相机或存储权限未开启");
+        if( !PermissionUtils.hasPermissions(mContext,Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+            ToastUtils.shortShow(mContext,"相机录音或存储权限未开启");
         }
         if(sdkEngine != null){
             //发布本地流
