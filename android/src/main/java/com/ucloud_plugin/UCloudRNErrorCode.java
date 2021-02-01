@@ -6,5 +6,7 @@ package com.ucloud_plugin;
  * @Describe
  */
 public class UCloudRNErrorCode {
-    public static int ENGINE_HAS_DESTROYED;
+    public static int ENGINE_HAS_DESTROYED = 1000;
+    public static int ARG_INVALID = 1001;
+
 }

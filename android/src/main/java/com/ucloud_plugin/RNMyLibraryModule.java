@@ -22,8 +22,10 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.ucloud_plugin.constants.UCloudRNEvent;
 import com.ucloud_plugin.service.UCloudRtcForeGroundService;
 import com.ucloud_plugin.utils.CommonUtils;
 import com.ucloud_plugin.utils.PermissionUtils;
@@ -51,6 +53,9 @@ import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkTrackType;
 import com.ucloudrtclib.sdkengine.define.UCloudRtcSdkVideoProfile;
 import com.ucloudrtclib.sdkengine.listener.UCloudRtcSdkEventListener;
 
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -230,18 +235,23 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         }
     }
 
-
     @ReactMethod
-    public void subscribeRemoteStream(){
+    public void subscribeRemoteStream(ReadableMap remoteStreamInfo){
         //订阅远程流
         if(sdkEngine != null){
-            SuperLog.d(TAG,"this is subscribeRemoteStream");
-            UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
-            info.setUid(userId);
-            info.setHasAudio(true);
-            info.setHasVideo(true);
-            info.setMediaType(UCloudRtcSdkMediaType.UCLOUD_RTC_SDK_MEDIA_TYPE_VIDEO);
-            sdkEngine.subscribe(info);
+            SuperLog.d(TAG,"this is subscribeRemoteStream " + remoteStreamInfo);
+            if(remoteStreamInfo != null){
+                UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
+                info.setUid(remoteStreamInfo.getString("uId"));
+                info.setMediaType(UCloudRtcSdkMediaType.matchValue(remoteStreamInfo.getInt("mediaType")));
+                info.setHasAudio(remoteStreamInfo.getBoolean("hasVideo"));
+                info.setHasVideo(remoteStreamInfo.getBoolean("hasAudio"));
+                info.setMuteVideo(remoteStreamInfo.getBoolean("muteVideo"));
+                info.setMuteAudio(remoteStreamInfo.getBoolean("muteAudio"));
+                sdkEngine.subscribe(info);
+            }else{
+                SuperLog.d(TAG,"subscribeRemoteStream failed for "+ UCloudRNErrorCode.ARG_INVALID);
+            }
         }else{
             SuperLog.d(TAG,"subscribeRemoteStream failed for "+ UCloudRNErrorCode.ENGINE_HAS_DESTROYED);
         }
@@ -261,8 +271,8 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
     }
     @ReactMethod
     public void publishLocalStreamWithCameraEnable(boolean isOpenCamera){
-        if( !PermissionUtils.hasPermissions(mContext,Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-            ToastUtils.shortShow(mContext,"相机录音或存储权限未开启");
+        if(!PermissionUtils.hasPermissions(mContext,Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+            ToastUtils.shortShow(mContext,"相机或存储权限未开启");
         }
         if(sdkEngine != null){
             //发布本地流
@@ -282,7 +292,6 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
             SuperLog.d(TAG,"unPublishLocalStream failed for "+ UCloudRNErrorCode.ENGINE_HAS_DESTROYED);
         }
     }
-
 
     @ReactMethod
     public void startRecordLocalStreamWithType(int type){
@@ -322,6 +331,20 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         startJoinChannel();
     }
 
+    private WritableMap combineInfo(Object info){
+        WritableMap params = Arguments.createMap();
+        if(info instanceof UCloudRtcSdkStreamInfo){
+            UCloudRtcSdkStreamInfo streamInfo = (UCloudRtcSdkStreamInfo)info;
+            params.putString("uId",streamInfo.getUId());
+            params.putInt("mediaType",streamInfo.getMediaType().ordinal());
+            params.putBoolean("hasVideo",streamInfo.isHasVideo());
+            params.putBoolean("hasAudio",streamInfo.isHasAudio());
+            params.putBoolean("muteVideo",streamInfo.isMuteVideo());
+            params.putBoolean("muteAudio",streamInfo.isMuteAudio());
+        }
+        return params;
+    }
+
     private void sendEvent(String eventName, WritableMap params) {
         if(mContext != null){
             SuperLog.d(TAG,"send event = " + eventName + "params "+ params);
@@ -351,7 +374,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
             WritableMap params = Arguments.createMap();
             params.putInt("code", i);
             params.putString("msg", s);
-            sendEvent("event_memberDidLeaveRoom",params);
+            sendEvent(UCloudRNEvent.EVENT_LEAVE_ROOM,params);
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -417,24 +440,15 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         @Override
         public void onRemotePublish(UCloudRtcSdkStreamInfo uCloudRtcSdkStreamInfo) {
             SuperLog.d(TAG,"onRemotePublish received info: "+ uCloudRtcSdkStreamInfo);
-            //开通自动订阅之后，当订阅的用户推流后会自动调用本方法
-            if(sdkEngine != null){
-                userId = uCloudRtcSdkStreamInfo.getUId();
-                //订阅远程流
-                UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
-                info.setUid(userId);
-                info.setHasAudio(true);
-                info.setHasVideo(true);
-//              info.setMediaType(UCloudRtcSdkMediaType.UCLOUD_RTC_SDK_MEDIA_TYPE_VIDEO);
-                sdkEngine.subscribe(info);
-            }else{
-                SuperLog.d(TAG,"onRemotePublish ignored for : " + UCloudRNErrorCode.ENGINE_HAS_DESTROYED);
-            }
+            WritableMap params = combineInfo(uCloudRtcSdkStreamInfo);
+            sendEvent(UCloudRNEvent.EVENT_REMOTE_PUBLISH,params);
         }
 
         @Override
         public void onRemoteUnPublish(UCloudRtcSdkStreamInfo uCloudRtcSdkStreamInfo) {
-
+            SuperLog.d(TAG,"onRemoteUnPublish "+ uCloudRtcSdkStreamInfo);
+            WritableMap params = combineInfo(uCloudRtcSdkStreamInfo);
+            sendEvent(UCloudRNEvent.EVENT_REMOTE_UN_PUBLISH,params);
         }
 
         @Override

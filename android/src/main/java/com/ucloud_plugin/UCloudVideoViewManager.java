@@ -9,6 +9,8 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
+import java.util.Map;
+
 public class UCloudVideoViewManager extends SimpleViewManager<RNMyVideoView> {
     @NonNull
     @Override
@@ -35,6 +37,7 @@ public class UCloudVideoViewManager extends SimpleViewManager<RNMyVideoView> {
     public void setColor(View view, String color) {
         view.setBackgroundColor(Color.parseColor(color));
     }
+
 
 
 }
