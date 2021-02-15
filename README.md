@@ -32,22 +32,7 @@ yarn upgrade
 
  ```
  import UCloudRtc from 'react-native-urtc';
-
-// 显示播放器
-const RNMyVideoView = requireNativeComponent('RNMyVideoView');
-
-...
-...
-
-UCloudRtc.initWithAppid(appid, appKey);
-
-...
-...
-
-    <View>
-      <RNMyVideoView style={styles.localVideoStyle} />
-    </View>   
-...
+ import UCloudView from './component/videoView/UCloudView';
  ```
 ## API
 #### 初始化 initWithAppid
@@ -103,20 +88,16 @@ UCloudRtc.leaveRoom();
 
 ### 事件监听
 ```
-  event_memberDidJoinRoom：用户进入房间
-  event_memberDidLeaveRoom：用户离开房间
-  event_remoteVolumeChange：声音变化回调
+//事件列表 0.1.6
+EVENT_JOIN_ROOM = "event_joinRoom";
+EVENT_LEAVE_ROOM = "event_leaveRoom";
+EVENT_PUBLISH = "event_publish";
+EVENT_UN_PUBLISH = "event_unPublish";
+EVENT_REMOTE_PUBLISH = "event_remotePublish";
+EVENT_REMOTE_UN_PUBLISH = "event_remoteUnPublish";
 
-  const UCloudRtcEventEmitter = new NativeEventEmitter(UCloudRtc);
-
-  
-  UCloudRtcEventEmitter.addListener('event_memberDidJoinRoom', args => {
-    console.log('事件event_memberDidJoinRoom', args);
-  });
-  UCloudRtcEventEmitter.addListener('event_memberDidLeaveRoom', args => {
-    console.log('事件event_memberDidLeaveRoom', args);
-  });
-  UCloudRtcEventEmitter.addListener('event_remoteVolumeChange', args => {
-    console.log('事件event_remoteVolumeChange', args);
-  });
+const UCloudRtcEventEmitter = new NativeEventEmitter(UCloudRtc);
+UCloudRtcEventEmitter.addListener('event_joinRoom', args => {
+    console.log('事件event_joinRoom', args);
+});
 ```
