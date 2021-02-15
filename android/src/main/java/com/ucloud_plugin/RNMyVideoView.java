@@ -17,7 +17,6 @@ class RNMyVideoView extends LinearLayout {
     private static final String TAG = "RNMyVideoView";
     private static RNMyVideoView mInstance;
 
-
     public static RNMyVideoView getInstance(Context context) {
         if (mInstance == null) {
             synchronized (RNMyVideoView.class) {
@@ -28,8 +27,6 @@ class RNMyVideoView extends LinearLayout {
         }
         return mInstance;
     }
-
-
 
     public RNMyVideoView(Context context){
         super(context);

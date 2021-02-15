@@ -71,7 +71,6 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
     private UCloudRtcSdkEngine sdkEngine;
     public static RNMyVideoView rnMyVideoView;
     //尝试初始化一个UCloudRtcSurfaceVideoView用作渲染流和传入RN进行展示
-    private static UCloudRtcSdkSurfaceVideoView mRenderView;
 
     public RNMyLibraryModule(@NonNull ReactApplicationContext reactContext) {
         super(reactContext);
@@ -366,6 +365,10 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
             if(i == 0 && mJoinPromise != null){
                 mJoinPromise.resolve("onJoinRoomResult "+ i + " msg: "+ s);
             }
+            WritableMap params = Arguments.createMap();
+            params.putInt("code", i);
+            params.putString("msg", s);
+            sendEvent(UCloudRNEvent.EVENT_JOIN_ROOM,params);
         }
 
         @Override
@@ -403,17 +406,21 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
                 @Override
                 public void run() {
                     if(sdkEngine != null){
-                        rnMyVideoView.setBackgroundColor(Color.TRANSPARENT);
-                        UCloudRtcSdkSurfaceVideoView localrenderview = new UCloudRtcSdkSurfaceVideoView(mContext);
-                        localrenderview.init(true);
-                        localrenderview.setId(R.id.video_view);
-                        localrenderview.getSurfaceView().setNeedFullScreen(false);
-                        info.setHasVideo(true);
-                        info.setHasAudio(true);
-                        info.setHasData(true);
-                        //两块不同的View分别渲染本地流和媒体流
-                        //防止本地和媒体同时展示在一个View上面
-                        sdkEngine.renderLocalView(info,localrenderview,UCloudRtcSdkScaleType.UCLOUD_RTC_SDK_SCALE_ASPECT_FIT,null);
+//                        rnMyVideoView.setBackgroundColor(Color.TRANSPARENT);
+//                        UCloudRtcSdkSurfaceVideoView localrenderview = new UCloudRtcSdkSurfaceVideoView(mContext);
+//                        localrenderview.init(true);
+//                        localrenderview.setId(R.id.video_view);
+//                        localrenderview.getSurfaceView().setNeedFullScreen(false);
+//                        info.setHasVideo(true);
+//                        info.setHasAudio(true);
+//                        info.setHasData(true);
+//                        //两块不同的View分别渲染本地流和媒体流
+//                        //防止本地和媒体同时展示在一个View上面
+//                        sdkEngine.renderLocalView(info,localrenderview,UCloudRtcSdkScaleType.UCLOUD_RTC_SDK_SCALE_ASPECT_FIT,null);
+                        WritableMap params = combineInfo(info);
+                        params.putInt("code",i);
+                        params.putString("msg",s);
+                        sendEvent(UCloudRNEvent.EVENT_PUBLISH,params);
                     }else{
                         SuperLog.d(TAG,"onLocalUnPublish ignored for : " + UCloudRNErrorCode.ENGINE_HAS_DESTROYED);
                     }
@@ -425,6 +432,10 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         public void onLocalUnPublish(int i, String s, UCloudRtcSdkStreamInfo uCloudRtcSdkStreamInfo) {
             //取消发布媒体流
             SuperLog.d(TAG,"onLocalUnPublish");
+            WritableMap params = combineInfo(uCloudRtcSdkStreamInfo);
+            params.putInt("code",i);
+            params.putString("msg",s);
+            sendEvent(UCloudRNEvent.EVENT_UN_PUBLISH,params);
         }
 
         @Override
