@@ -256,14 +256,22 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         }
     }
     @ReactMethod
-    public void unSubscribeRemoteStream(){
+    public void unSubscribeRemoteStream(ReadableMap remoteStreamInfo){
         if(sdkEngine != null){
             //取消订阅远程流
             SuperLog.d(TAG,"this is unSubscribeRemoteStream");
-            UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
-            info.setUid(userId);
-            info.setMediaType(UCloudRtcSdkMediaType.UCLOUD_RTC_SDK_MEDIA_TYPE_VIDEO);
-            sdkEngine.subscribe(info);
+            if(remoteStreamInfo != null){
+                UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
+                info.setUid(remoteStreamInfo.getString("uId"));
+                info.setMediaType(UCloudRtcSdkMediaType.matchValue(remoteStreamInfo.getInt("mediaType")));
+                info.setHasAudio(remoteStreamInfo.getBoolean("hasVideo"));
+                info.setHasVideo(remoteStreamInfo.getBoolean("hasAudio"));
+                info.setMuteVideo(remoteStreamInfo.getBoolean("muteVideo"));
+                info.setMuteAudio(remoteStreamInfo.getBoolean("muteAudio"));
+                sdkEngine.unSubscribe(info);
+            }else{
+                SuperLog.d(TAG,"unSubscribeRemoteStream failed for "+ UCloudRNErrorCode.ARG_INVALID);
+            }
         }else{
             SuperLog.d(TAG,"unSubscribeRemoteStream failed for "+ UCloudRNErrorCode.ENGINE_HAS_DESTROYED);
         }
@@ -466,6 +474,10 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         public void onSubscribeResult(int i, String s, UCloudRtcSdkStreamInfo info) {
             SuperLog.d(TAG,"onSubscribeResult received code:" + i + " msg: "+ s + "info: "+ info);
             //订阅媒体流结果
+            WritableMap params = combineInfo(info);
+            params.putInt("code",i);
+            params.putString("msg",s);
+            sendEvent(UCloudRNEvent.EVENT_SUB,params);
             mContext.getCurrentActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -486,7 +498,11 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         @Override
         public void onUnSubscribeResult(int i, String s, UCloudRtcSdkStreamInfo uCloudRtcSdkStreamInfo) {
             //取消媒体订阅流
-
+            SuperLog.d(TAG,"onUnSubscribeResult received code:" + i + " msg: "+ s + "info: "+ uCloudRtcSdkStreamInfo);
+            WritableMap params = combineInfo(uCloudRtcSdkStreamInfo);
+            params.putInt("code",i);
+            params.putString("msg",s);
+            sendEvent(UCloudRNEvent.EVENT_UN_SUB,params);
         }
 
         @Override

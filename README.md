@@ -88,11 +88,13 @@ UCloudRtc.leaveRoom();
 
 ### 事件监听
 ```
-//事件列表 0.1.6
+//事件列表 0.1.7
 EVENT_JOIN_ROOM = "event_joinRoom";
 EVENT_LEAVE_ROOM = "event_leaveRoom";
 EVENT_PUBLISH = "event_publish";
 EVENT_UN_PUBLISH = "event_unPublish";
+EVENT_SUB = "event_subscribe";
+EVENT_UN_SUB = "event_unSubscribe";
 EVENT_REMOTE_PUBLISH = "event_remotePublish";
 EVENT_REMOTE_UN_PUBLISH = "event_remoteUnPublish";
 

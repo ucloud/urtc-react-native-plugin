@@ -11,6 +11,8 @@ public class UCloudRNEvent {
     public static final String EVENT_LEAVE_ROOM = "event_leaveRoom";
     public static final String EVENT_PUBLISH = "event_publish";
     public static final String EVENT_UN_PUBLISH = "event_unPublish";
+    public static final String EVENT_SUB = "event_subscribe";
+    public static final String EVENT_UN_SUB = "event_unSubscribe";
     public static final String EVENT_REMOTE_PUBLISH = "event_remotePublish";
     public static final String EVENT_REMOTE_UN_PUBLISH = "event_remoteUnPublish";
 }
