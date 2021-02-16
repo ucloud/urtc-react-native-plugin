@@ -243,8 +243,8 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
                 UCloudRtcSdkStreamInfo info = new UCloudRtcSdkStreamInfo();
                 info.setUid(remoteStreamInfo.getString("uId"));
                 info.setMediaType(UCloudRtcSdkMediaType.matchValue(remoteStreamInfo.getInt("mediaType")));
-                info.setHasAudio(remoteStreamInfo.getBoolean("hasVideo"));
-                info.setHasVideo(remoteStreamInfo.getBoolean("hasAudio"));
+                info.setHasAudio(remoteStreamInfo.getBoolean("hasAudio"));
+                info.setHasVideo(remoteStreamInfo.getBoolean("hasVideo"));
                 info.setMuteVideo(remoteStreamInfo.getBoolean("muteVideo"));
                 info.setMuteAudio(remoteStreamInfo.getBoolean("muteAudio"));
                 sdkEngine.subscribe(info);
@@ -409,7 +409,7 @@ public class RNMyLibraryModule extends ReactContextBaseJavaModule {
         @Override
         public void onLocalPublish(int i, String s, UCloudRtcSdkStreamInfo info) {
             //发布流
-            SuperLog.d(TAG,"onLocalUnPublish received code: "+ i + " info: "+ info);
+            SuperLog.d(TAG,"onLocalPublish received code: "+ i + " info: "+ info);
             mContext.getCurrentActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
